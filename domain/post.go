@@ -59,3 +59,8 @@ type PostUpdateDto struct {
 	StoryImages []string `bson:"storyImages" json:"storyImages"`
 	Tag         string   `bson:"tag" json:"tag"`
 }
+
+type PostUpdateVisibilityDto struct {
+	Title       string   `bson:"title" json:"title"`
+	Visible     bool               `bson:"visible" json:"visible"`
+}

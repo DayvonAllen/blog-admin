@@ -71,45 +71,34 @@ func (ph *PostHandler) UpdatePost(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "error...", "data": fmt.Sprintf("%v", err)})
 	}
 
-	return c.Status(201).JSON(fiber.Map{"status": "success", "message": "success", "data": "success"})
+	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "success", "data": "success"})
 }
 
-func (ph *PostHandler) GetAllPosts(c *fiber.Ctx) error {
-	page := c.Query("page", "1")
+func (ph *PostHandler) UpdateVisibility(c *fiber.Ctx) error {
+	token := c.Get("Authorization")
+	c.Accepts("application/json")
 
-	postList, err := ph.PostService.FindAllPosts(page)
+	var auth domain.Authentication
+	u, loggedIn, err := auth.IsLoggedIn(token)
+
+	if err != nil || loggedIn == false {
+		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "error...", "data": "Unauthorized user"})
+	}
+
+	post := new(domain.PostUpdateVisibilityDto)
+
+	err = c.BodyParser(post)
 
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "error...", "data": fmt.Sprintf("%v", err)})
 	}
 
-	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "success", "data": postList})
-}
-
-func (ph *PostHandler) GetFeaturedPosts(c *fiber.Ctx) error {
-	postList, err := ph.PostService.FeaturedPosts()
+	err = ph.PostService.UpdateVisibility(*post, u.Username)
 
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "error...", "data": fmt.Sprintf("%v", err)})
 	}
 
-	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "success", "data": postList})
-}
-
-
-func (ph *PostHandler) GetPostById(c *fiber.Ctx) error {
-	id, err := primitive.ObjectIDFromHex(c.Params("id"))
-
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "error...", "data": fmt.Sprintf("%v", err)})
-	}
-
-	post, err := ph.PostService.FindPostById(id)
-
-	if err != nil {
-		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "error...", "data": fmt.Sprintf("%v", err)})
-	}
-
-	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "success", "data": post})
+	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "success", "data": "success"})
 }
 

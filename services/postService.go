@@ -11,6 +11,7 @@ type PostService interface {
 	FeaturedPosts() (*domain.PostList, error)
 	Create(post domain.Post, username string) error
 	UpdateByTitle(post domain.PostUpdateDto, username string) error
+	UpdateVisibility(post domain.PostUpdateVisibilityDto, username string) error
 	FindPostById(id primitive.ObjectID) (*domain.PostDto, error)
 }
 
@@ -36,6 +37,14 @@ func (s DefaultPostService) Create(post domain.Post, username string) error {
 
 func (s DefaultPostService) UpdateByTitle(post domain.PostUpdateDto, username string) error {
 	err := s.repo.UpdateByTitle(post, username)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s DefaultPostService) UpdateVisibility(post domain.PostUpdateVisibilityDto, username string) error {
+	err := s.repo.UpdateVisibility(post, username)
 	if err != nil {
 		return err
 	}

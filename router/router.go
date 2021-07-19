@@ -18,15 +18,11 @@ func SetupRoutes(app *fiber.App) {
 	api := app.Group("", logger.New())
 
 	tags := api.Group("/control/tags")
-	tags.Get("/category/:category", th.GetAllPostsByTags)
-	tags.Get("/", th.GetAllTags)
 	tags.Post("/", th.CreateTag)
 
 	posts := api.Group("/control/posts")
-	posts.Get("/featured", ph.GetFeaturedPosts)
-	posts.Get("/:id", ph.GetPostById)
-	posts.Get("/", ph.GetAllPosts)
 	posts.Post("/", ph.CreatePost)
+	posts.Put("/visibility", ph.UpdateVisibility)
 	posts.Put("/", ph.UpdatePost)
 
 	auth := api.Group("/control/checkin")

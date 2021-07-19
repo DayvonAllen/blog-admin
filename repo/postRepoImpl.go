@@ -253,6 +253,48 @@ func (p PostRepoImpl) UpdateByTitle(post domain.PostUpdateDto, username string) 
 	return nil
 }
 
+func (p PostRepoImpl) UpdateVisibility(post domain.PostUpdateVisibilityDto, username string) error {
+	conn := database.MongoConnectionPool.Get().(*database.Connection)
+	defer database.MongoConnectionPool.Put(conn)
+
+	adminSearch := new(domain.Admin)
+	err := conn.AdminCollection.FindOne(context.TODO(), bson.M{"username": username}).Decode(adminSearch)
+
+	if err != nil {
+		return err
+	}
+
+	err = conn.PostCollection.FindOneAndUpdate(context.TODO(), bson.D{{"title", post.Title}},
+		bson.M{"$set": bson.M{
+			"visible": post.Visible,
+			"updated":     true,
+			"updatedAt":   time.Now(),
+		},
+		}).Decode(&p.post)
+
+	if err != nil {
+		return fmt.Errorf("error processing data")
+	}
+
+	updatedPost := new(domain.Post)
+
+	err = conn.PostCollection.FindOne(context.TODO(), bson.D{{"_id", p.post.Id}}).Decode(updatedPost)
+
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		err := SendKafkaMessage(updatedPost, 200)
+		if err != nil {
+			fmt.Println("Error publishing...")
+			return
+		}
+	}()
+
+	return nil
+}
+
 func (p PostRepoImpl) FeaturedPosts() (*domain.PostList, error) {
 	conn := database.MongoConnectionPool.Get().(*database.Connection)
 	defer database.MongoConnectionPool.Put(conn)
