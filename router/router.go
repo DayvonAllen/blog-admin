@@ -2,6 +2,7 @@ package router
 
 import (
 	"com.aharakitchen/app/handlers"
+	"com.aharakitchen/app/middleware"
 	"com.aharakitchen/app/repo"
 	"com.aharakitchen/app/services"
 	"github.com/gofiber/fiber/v2"
@@ -19,11 +20,15 @@ func SetupRoutes(app *fiber.App) {
 
 	tags := api.Group("/control/tags")
 	tags.Post("/", th.CreateTag)
+	tags.Get("/:category", middleware.IsLoggedIn, th.GetAllPostsByTags)
+	tags.Get("/", middleware.IsLoggedIn, th.GetAllTags)
 
 	posts := api.Group("/control/posts")
 	posts.Post("/", ph.CreatePost)
 	posts.Put("/visibility", ph.UpdateVisibility)
 	posts.Put("/", ph.UpdatePost)
+	posts.Get("/:id", middleware.IsLoggedIn, ph.GetPostById)
+	posts.Get("/", middleware.IsLoggedIn, ph.GetAllPosts)
 
 	auth := api.Group("/control/checkin")
 	auth.Post("/", ah.Login)

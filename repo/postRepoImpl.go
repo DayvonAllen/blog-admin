@@ -6,6 +6,10 @@ import (
 	"context"
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -15,6 +19,83 @@ type PostRepoImpl struct {
 	postList     domain.PostList
 	postDto      domain.PostDto
 	post         domain.Post
+}
+
+func (p PostRepoImpl) FindAllPosts(page string, newPosts bool) (*domain.PostList, error) {
+	conn := database.MongoConnectionPool.Get().(*database.Connection)
+	defer database.MongoConnectionPool.Put(conn)
+
+	findOptions := options.FindOptions{}
+	perPage := 10
+	pageNumber, err := strconv.Atoi(page)
+
+	if err != nil {
+		return nil, fmt.Errorf("page must be a number")
+	}
+	findOptions.SetSkip((int64(pageNumber) - 1) * int64(perPage))
+	findOptions.SetLimit(int64(perPage))
+
+	if newPosts {
+		findOptions.SetSort(bson.D{{"createdAt", -1}})
+	}
+
+	query := bson.M{}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		cur, err := conn.PostCollection.Find(context.TODO(), query, &findOptions)
+
+		if err != nil {
+			panic(err)
+		}
+
+		if err = cur.All(context.TODO(), &p.postPreviews); err != nil {
+			log.Fatal(err)
+		}
+		return
+	}()
+
+	go func() {
+		defer wg.Done()
+		count, err:= conn.PostCollection.CountDocuments(context.TODO(),query)
+
+		if err != nil {
+			panic(err)
+		}
+
+		p.postList.NumberOfPosts = count
+
+		if p.postList.NumberOfPosts < 10 {
+			p.postList.NumberOfPages = 1
+		} else {
+			p.postList.NumberOfPages = int(count / 10) + 1
+		}
+	}()
+
+	wg.Wait()
+
+	p.postList.Posts = p.postPreviews
+	p.postList.CurrentPage = 1
+
+	return &p.postList, nil
+}
+
+func (p PostRepoImpl) FindPostById(id primitive.ObjectID) (*domain.PostDto, error) {
+	conn := database.MongoConnectionPool.Get().(*database.Connection)
+	defer database.MongoConnectionPool.Put(conn)
+
+	query := bson.D{{"_id", id}}
+
+	err := conn.PostCollection.FindOne(context.TODO(), query).Decode(&p.postDto)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &p.postDto, nil
 }
 
 func (p PostRepoImpl) Create(post domain.Post, username string) error {

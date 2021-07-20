@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
+	"strconv"
 	"sync"
 )
 
@@ -15,6 +18,94 @@ type TagRepoImpl struct {
 	postList   domain.PostList
 	tags []domain.TagDto
 	tag domain.Tag
+	tagList domain.TagList
+}
+
+func (t TagRepoImpl) FindAllTags() (*domain.TagList, error) {
+	conn := database.MongoConnectionPool.Get().(*database.Connection)
+	defer database.MongoConnectionPool.Put(conn)
+
+	cur, err := conn.TagCollection.Find(context.TODO(), bson.M{})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if err = cur.All(context.TODO(), &t.tags); err != nil {
+		log.Fatal(err)
+	}
+
+	// Close the cursor once finished
+	err = cur.Close(context.TODO())
+
+	t.tagList.Tags = t.tags
+	t.tagList.NumberOfCategories = len(t.tags)
+
+	return &t.tagList, nil
+}
+
+func (t TagRepoImpl) FindAllPostsByCategory(category, page string) (*domain.PostList, error) {
+	conn := database.MongoConnectionPool.Get().(*database.Connection)
+	defer database.MongoConnectionPool.Put(conn)
+
+	err := conn.TagCollection.FindOne(context.TODO(), bson.D{{"value", category}}).Decode(&t.tag)
+
+	if err != nil {
+		return nil, err
+	}
+
+	findOptions := options.FindOptions{}
+	perPage := 10
+	pageNumber, err := strconv.Atoi(page)
+
+	if err != nil {
+		return nil, fmt.Errorf("page must be a number")
+	}
+	findOptions.SetSkip((int64(pageNumber) - 1) * int64(perPage))
+	findOptions.SetLimit(int64(perPage))
+
+	query := bson.M{"_id": bson.M{"$in": t.tag.AssociatedPosts}}
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	go func() {
+		defer wg.Done()
+		cur, err := conn.PostCollection.Find(context.TODO(), query, &findOptions)
+
+		if err != nil {
+			panic(err)
+		}
+
+		if err = cur.All(context.TODO(), &t.postPreviews); err != nil {
+			log.Fatal(err)
+		}
+
+	}()
+
+	go func() {
+		defer wg.Done()
+		count, err:= conn.PostCollection.CountDocuments(context.TODO(),query)
+
+		if err != nil {
+			panic(err)
+		}
+
+		t.postList.NumberOfPosts = count
+
+		if t.postList.NumberOfPosts < 10 {
+			t.postList.NumberOfPages = 1
+		} else {
+			t.postList.NumberOfPages = int(count / 10) + 1
+		}
+	}()
+
+	wg.Wait()
+
+	t.postList.Posts = t.postPreviews
+	t.postList.CurrentPage = 1
+
+	return &t.postList, nil
 }
 
 func (t TagRepoImpl) Create(tag domain.Tag, username string) error {

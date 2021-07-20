@@ -8,4 +8,6 @@ import (
 type TagRepo interface {
 	Create(tag domain.Tag, username string) error
 	UpdateTag(tagValue string, postId primitive.ObjectID) error
+	FindAllTags() (*domain.TagList, error)
+	FindAllPostsByCategory(category, page string) (*domain.PostList, error)
 }

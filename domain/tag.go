@@ -6,7 +6,7 @@ import (
 )
 
 type Tag struct {
-	Id             primitive.ObjectID `bson:"_id" json:"-"`
+	Id             primitive.ObjectID `bson:"_id" json:"id"`
 	Value          string `bson:"value" json:"value"`
 	AssociatedPosts []primitive.ObjectID `bson:"associatedPosts"`
 	CreatedAt      time.Time          `bson:"createdAt" json:"-"`
@@ -14,7 +14,12 @@ type Tag struct {
 }
 
 type TagDto struct {
-	Id             primitive.ObjectID `bson:"_id" json:"-"`
+	Id             primitive.ObjectID `bson:"_id" json:"id"`
 	Value          string `bson:"value" json:"value"`
 	AssociatedPosts []primitive.ObjectID `bson:"associatedPosts" json:"-"`
+}
+
+type TagList struct {
+	Tags				[]TagDto `bson:"tags" json:"tags"`
+	NumberOfCategories int `bson:"numberOfCategories" json:"numberOfCategories"`
 }

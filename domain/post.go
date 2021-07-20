@@ -6,7 +6,7 @@ import (
 )
 
 type Post struct {
-	Id          primitive.ObjectID `bson:"_id" json:"-"`
+	Id          primitive.ObjectID `bson:"_id" json:"id"`
 	Title       string             `bson:"title" json:"title"`
 	Content     string             `bson:"content" json:"content"`
 	Preview     string             `bson:"preview" json:"-"`
@@ -22,6 +22,7 @@ type Post struct {
 }
 
 type PostDto struct {
+	Id          primitive.ObjectID `bson:"_id" json:"id"`
 	Title       string    `bson:"title" json:"title"`
 	Content     string    `bson:"content" json:"content"`
 	Author      string    `bson:"author" json:"author"`
@@ -34,7 +35,7 @@ type PostDto struct {
 }
 
 type PostPreviewDto struct {
-	Id        primitive.ObjectID `json:"id"`
+	Id        primitive.ObjectID `bson:"_id" json:"id"`
 	Title     string             `json:"title"`
 	Preview   string             `json:"preview"`
 	Author    string             `json:"author"`
