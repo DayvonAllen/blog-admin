@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/vmihailenco/msgpack/v5"
-	"os"
 )
 
 func ProcessMessage(message domain.Message) error {
@@ -87,7 +86,7 @@ func SendKafkaMessage(post *domain.Post, eventType int) error {
 		return err
 	}
 
-	err = PushUserToQueue(b, os.Getenv("TOPIC"))
+	err = PushUserToQueue(b, "post")
 
 	if err != nil {
 		return err
@@ -111,7 +110,7 @@ func SendAltKafkaMessage(tag *domain.Tag, eventType int) error {
 		return err
 	}
 
-	err = PushUserToQueue(b, os.Getenv("SECONDARY_TOPIC"))
+	err = PushUserToQueue(b, "tag")
 
 	if err != nil {
 		return err

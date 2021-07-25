@@ -2,7 +2,6 @@ package kafkaProducer
 
 import (
 	"github.com/Shopify/sarama"
-	"os"
 	"strings"
 	"sync"
 )
@@ -27,11 +26,11 @@ func GetInstance() *Connection {
 }
 
 func connectProducer() (sarama.SyncProducer,error) {
-	names := os.Getenv("KAFKA_SERVICE_NAMES")
+	//names := os.Getenv("KAFKA_SERVICE_NAMES")
 
 	namesArr := make([]string, 0, 10)
 
-	for _, v := range strings.Split(names, ",") {
+	for _, v := range strings.Split("kafka:9092", ",") {
 		namesArr = append(namesArr, v)
 	}
 
