@@ -25,13 +25,13 @@ func ConnectToDB() (*Connection, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	max := uint64(1000)
-	min := uint64(1)
-	idleTime := time.Second * 10
+	//max := uint64(1000)
+	//min := uint64(1)
+	//idleTime := time.Second * 10
 	dbOptions := options.ClientOptions{
-		MaxPoolSize: &max,
-		MinPoolSize: &min,
-		MaxConnIdleTime: &idleTime,
+		//MaxPoolSize: &max,
+		//MinPoolSize: &min,
+		//MaxConnIdleTime: &idleTime,
 	}
 
 	client, err := mongo.Connect(ctx, dbOptions.ApplyURI(n+h+p))
