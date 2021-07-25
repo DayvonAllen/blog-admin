@@ -18,9 +18,7 @@ type Connection struct {
 }
 
 func ConnectToDB() (*Connection, error) {
-	p := config.Config("DB_PORT")
-	n := config.Config("DB_NAME")
-	h := config.Config("DB_HOST")
+	uri := config.Config("DB_URI")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -34,7 +32,7 @@ func ConnectToDB() (*Connection, error) {
 		//MaxConnIdleTime: &idleTime,
 	}
 
-	client, err := mongo.Connect(ctx, dbOptions.ApplyURI(n+h+p))
+	client, err := mongo.Connect(ctx, dbOptions.ApplyURI(uri))
 	if err != nil {
 		return nil, err
 	}
