@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"strconv"
@@ -139,57 +140,64 @@ func (t TagRepoImpl) Create(tag domain.Tag, username string) error {
 		return err
 	}
 
-	var wg sync.WaitGroup
-	wg.Add(2)
-	errorMessage := ""
-
-	go func() {
-		defer wg.Done()
-		adminSearch := new(domain.Admin)
-		err := conn.AdminCollection.FindOne(context.TODO(), bson.M{"username": username}).Decode(adminSearch)
-
-		if err != nil {
-			errorMessage = "unauthorized"
-		}
-	}()
-
-	go func() {
-		defer wg.Done()
-		cur, err := conn.TagCollection.Find(context.TODO(), bson.M{"value": tag.Value})
-
-		if err != nil {
-			panic(err)
-		}
-		if cur.Next(context.TODO()) {
-			errorMessage = "tag already exists"
-		}
-	}()
-
-	wg.Wait()
-
-	if errorMessage != "" {
-		return fmt.Errorf(errorMessage)
-	}
-
-	posts := make([]primitive.ObjectID, 0, 0)
-	tag.Id = primitive.NewObjectID()
-	tag.AssociatedPosts = posts
-
-	_, err = conn.TagCollection.InsertOne(context.TODO(), &tag)
+	err = conn.TagCollection.FindOne(context.TODO(), bson.M{"value": tag.Value}).Decode(&t.tag)
 
 	if err != nil {
-		return fmt.Errorf("errorMessage processing data")
+		if err == mongo.ErrNoDocuments {
+			var wg sync.WaitGroup
+			wg.Add(2)
+			errorMessage := ""
+
+			go func() {
+				defer wg.Done()
+				adminSearch := new(domain.Admin)
+				err := conn.AdminCollection.FindOne(context.TODO(), bson.M{"username": username}).Decode(adminSearch)
+
+				if err != nil {
+					errorMessage = "unauthorized"
+				}
+			}()
+
+			go func() {
+				defer wg.Done()
+				cur, err := conn.TagCollection.Find(context.TODO(), bson.M{"value": tag.Value})
+
+				if err != nil {
+					panic(err)
+				}
+				if cur.Next(context.TODO()) {
+					errorMessage = "tag already exists"
+				}
+			}()
+
+			wg.Wait()
+
+			if errorMessage != "" {
+				return fmt.Errorf(errorMessage)
+			}
+
+			posts := make([]primitive.ObjectID, 0, 0)
+			tag.Id = primitive.NewObjectID()
+			tag.AssociatedPosts = posts
+
+			_, err = conn.TagCollection.InsertOne(context.TODO(), &tag)
+
+			if err != nil {
+				return fmt.Errorf("errorMessage processing data")
+			}
+
+			go func() {
+				err := SendAltKafkaMessage(&tag, 201)
+				if err != nil {
+					fmt.Println("Error publishing...")
+					return
+				}
+			}()
+		}
+		return err
 	}
 
-	go func() {
-		err := SendAltKafkaMessage(&tag, 201)
-		if err != nil {
-			fmt.Println("Error publishing...")
-			return
-		}
-	}()
-
-	return nil
+	return fmt.Errorf("tag already exists")
 }
 
 func (t TagRepoImpl) UpdateTag(tagValue string, postId primitive.ObjectID) error {
