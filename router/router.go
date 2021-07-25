@@ -33,6 +33,7 @@ func SetupRoutes(app *fiber.App) {
 
 	auth := api.Group("/control/checkin")
 	auth.Post("/", ah.Login)
+	auth.Get("/", ah.Logout)
 }
 
 func Setup() *fiber.App {
