@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
 	"strings"
+	"time"
 )
 
 type AuthHandler struct {
@@ -43,7 +44,13 @@ func (ah *AuthHandler) Login(c *fiber.Ctx) error {
 
 	signedToken = append(signedToken, t...)
 
-	c.Set("Authorization", string(signedToken))
+	// Set cookie
+	c.Cookie(&fiber.Cookie{
+		Name: "Authentication",
+		Value: string(signedToken),
+		Expires: time.Now().Add(1 * time.Hour),
+		HTTPOnly: true,
+	})
 
 	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "success", "data": "success"})
 }

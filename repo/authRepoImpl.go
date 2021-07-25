@@ -17,11 +17,20 @@ func(a AuthRepoImpl) Login(username string, password string, ip string, ips []st
 	var login domain.Authentication
 	var admin domain.Admin
 
-	conn := database.MongoConnectionPool.Get().(*database.Connection)
-	database.MongoConnectionPool.Put(conn)
+	conn, err := database.ConnectToDB()
+	defer func(conn *database.Connection, ctx context.Context) {
+		err := conn.Disconnect(ctx)
+		if err != nil {
+
+		}
+	}(conn, context.TODO())
+
+	if err != nil {
+		return nil, "", err
+	}
 
 	opts := options.FindOne()
-	err := conn.AdminCollection.FindOne(context.TODO(), bson.D{{"username",
+	err = conn.AdminCollection.FindOne(context.TODO(), bson.D{{"username",
 		username}},opts).Decode(&admin)
 
 	if err != nil {

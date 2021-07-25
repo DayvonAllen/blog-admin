@@ -22,8 +22,17 @@ type TagRepoImpl struct {
 }
 
 func (t TagRepoImpl) FindAllTags() (*domain.TagList, error) {
-	conn := database.MongoConnectionPool.Get().(*database.Connection)
-	defer database.MongoConnectionPool.Put(conn)
+	conn, err := database.ConnectToDB()
+	defer func(conn *database.Connection, ctx context.Context) {
+		err := conn.Disconnect(ctx)
+		if err != nil {
+
+		}
+	}(conn, context.TODO())
+
+	if err != nil {
+		return nil, err
+	}
 
 	cur, err := conn.TagCollection.Find(context.TODO(), bson.M{})
 
@@ -45,10 +54,19 @@ func (t TagRepoImpl) FindAllTags() (*domain.TagList, error) {
 }
 
 func (t TagRepoImpl) FindAllPostsByCategory(category, page string) (*domain.PostList, error) {
-	conn := database.MongoConnectionPool.Get().(*database.Connection)
-	defer database.MongoConnectionPool.Put(conn)
+	conn, err := database.ConnectToDB()
+	defer func(conn *database.Connection, ctx context.Context) {
+		err := conn.Disconnect(ctx)
+		if err != nil {
 
-	err := conn.TagCollection.FindOne(context.TODO(), bson.D{{"value", category}}).Decode(&t.tag)
+		}
+	}(conn, context.TODO())
+
+	if err != nil {
+		return nil, err
+	}
+
+	err = conn.TagCollection.FindOne(context.TODO(), bson.D{{"value", category}}).Decode(&t.tag)
 
 	if err != nil {
 		return nil, err
@@ -109,8 +127,17 @@ func (t TagRepoImpl) FindAllPostsByCategory(category, page string) (*domain.Post
 }
 
 func (t TagRepoImpl) Create(tag domain.Tag, username string) error {
-	conn := database.MongoConnectionPool.Get().(*database.Connection)
-	defer database.MongoConnectionPool.Put(conn)
+	conn, err := database.ConnectToDB()
+	defer func(conn *database.Connection, ctx context.Context) {
+		err := conn.Disconnect(ctx)
+		if err != nil {
+
+		}
+	}(conn, context.TODO())
+
+	if err != nil {
+		return err
+	}
 
 	var wg sync.WaitGroup
 	wg.Add(2)
@@ -148,7 +175,7 @@ func (t TagRepoImpl) Create(tag domain.Tag, username string) error {
 	tag.Id = primitive.NewObjectID()
 	tag.AssociatedPosts = posts
 
-	_, err := conn.TagCollection.InsertOne(context.TODO(), &tag)
+	_, err = conn.TagCollection.InsertOne(context.TODO(), &tag)
 
 	if err != nil {
 		return fmt.Errorf("errorMessage processing data")
@@ -166,10 +193,19 @@ func (t TagRepoImpl) Create(tag domain.Tag, username string) error {
 }
 
 func (t TagRepoImpl) UpdateTag(tagValue string, postId primitive.ObjectID) error {
-	conn := database.MongoConnectionPool.Get().(*database.Connection)
-	defer database.MongoConnectionPool.Put(conn)
+	conn, err := database.ConnectToDB()
+	defer func(conn *database.Connection, ctx context.Context) {
+		err := conn.Disconnect(ctx)
+		if err != nil {
 
-	err := conn.TagCollection.FindOne(context.TODO(), bson.M{"value": tagValue}).Decode(&t.tag)
+		}
+	}(conn, context.TODO())
+
+	if err != nil {
+		return err
+	}
+
+	err = conn.TagCollection.FindOne(context.TODO(), bson.M{"value": tagValue}).Decode(&t.tag)
 
 	if err != nil {
 		return err

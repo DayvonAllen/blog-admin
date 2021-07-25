@@ -4,7 +4,6 @@ import (
 	"com.aharakitchen/app/config"
 	"com.aharakitchen/app/database"
 	"com.aharakitchen/app/domain"
-	"com.aharakitchen/app/events"
 	"com.aharakitchen/app/router"
 	"context"
 	"fmt"
@@ -19,16 +18,23 @@ import (
 
 func init() {
 	// create database connection instance for first time
-	go events.KafkaConsumerGroup()
-
 	u := config.Config("ADMIN_USERNAME")
 	p := config.Config("PASSWORD")
 
-	conn := database.MongoConnectionPool.Get().(*database.Connection)
-	defer database.MongoConnectionPool.Put(conn)
+	conn, err := database.ConnectToDB()
+	defer func(conn *database.Connection, ctx context.Context) {
+		err := conn.Disconnect(ctx)
+		if err != nil {
+
+		}
+	}(conn, context.TODO())
+
+	if err != nil {
+		panic(err)
+	}
 
 	adminSearch := new(domain.Admin)
-	err := conn.AdminCollection.FindOne(context.TODO(), bson.M{"username": u}).Decode(adminSearch)
+	err = conn.AdminCollection.FindOne(context.TODO(), bson.M{"username": u}).Decode(adminSearch)
 
 	if err != nil  {
 		if err == mongo.ErrNoDocuments {
@@ -46,6 +52,8 @@ func init() {
 		}
 		panic(err)
 	}
+
+	//go events.KafkaConsumerGroup()
 }
 
 func main() {

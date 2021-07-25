@@ -22,9 +22,19 @@ func ConnectToDB() (*Connection, error) {
 	n := config.Config("DB_NAME")
 	h := config.Config("DB_HOST")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(n+h+p))
+
+	max := uint64(1000)
+	min := uint64(1)
+	idleTime := time.Second * 10
+	dbOptions := options.ClientOptions{
+		MaxPoolSize: &max,
+		MinPoolSize: &min,
+		MaxConnIdleTime: &idleTime,
+	}
+
+	client, err := mongo.Connect(ctx, dbOptions.ApplyURI(n+h+p))
 	if err != nil {
 		return nil, err
 	}

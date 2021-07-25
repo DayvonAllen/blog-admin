@@ -14,7 +14,7 @@ type TagHandler struct {
 }
 
 func (th *TagHandler) CreateTag(c *fiber.Ctx) error {
-	token := c.Get("Authorization")
+	token := c.Cookies("Authentication")
 	c.Accepts("application/json")
 
 	var auth domain.Authentication

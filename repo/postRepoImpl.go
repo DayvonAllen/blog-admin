@@ -22,8 +22,17 @@ type PostRepoImpl struct {
 }
 
 func (p PostRepoImpl) FindAllPosts(page string, newPosts bool) (*domain.PostList, error) {
-	conn := database.MongoConnectionPool.Get().(*database.Connection)
-	defer database.MongoConnectionPool.Put(conn)
+	conn, err := database.ConnectToDB()
+	defer func(conn *database.Connection, ctx context.Context) {
+		err := conn.Disconnect(ctx)
+		if err != nil {
+
+		}
+	}(conn, context.TODO())
+
+	if err != nil {
+		return nil, err
+	}
 
 	findOptions := options.FindOptions{}
 	perPage := 10
@@ -84,12 +93,20 @@ func (p PostRepoImpl) FindAllPosts(page string, newPosts bool) (*domain.PostList
 }
 
 func (p PostRepoImpl) FindPostById(id primitive.ObjectID) (*domain.PostDto, error) {
-	conn := database.MongoConnectionPool.Get().(*database.Connection)
-	defer database.MongoConnectionPool.Put(conn)
+	conn, err := database.ConnectToDB()
+	defer func(conn *database.Connection, ctx context.Context) {
+		err := conn.Disconnect(ctx)
+		if err != nil {
 
+		}
+	}(conn, context.TODO())
+
+	if err != nil {
+		return nil, err
+	}
 	query := bson.D{{"_id", id}}
 
-	err := conn.PostCollection.FindOne(context.TODO(), query).Decode(&p.postDto)
+	err = conn.PostCollection.FindOne(context.TODO(), query).Decode(&p.postDto)
 
 	if err != nil {
 		return nil, err
@@ -99,8 +116,17 @@ func (p PostRepoImpl) FindPostById(id primitive.ObjectID) (*domain.PostDto, erro
 }
 
 func (p PostRepoImpl) Create(post domain.Post, username string) error {
-	conn := database.MongoConnectionPool.Get().(*database.Connection)
-	defer database.MongoConnectionPool.Put(conn)
+	conn, err := database.ConnectToDB()
+	defer func(conn *database.Connection, ctx context.Context) {
+		err := conn.Disconnect(ctx)
+		if err != nil {
+
+		}
+	}(conn, context.TODO())
+
+	if err != nil {
+		return err
+	}
 
 	var wg sync.WaitGroup
 	wg.Add(3)
@@ -148,7 +174,7 @@ func (p PostRepoImpl) Create(post domain.Post, username string) error {
 		return fmt.Errorf(errorMessage)
 	}
 
-	_, err := conn.PostCollection.InsertOne(context.TODO(), &post)
+	_, err = conn.PostCollection.InsertOne(context.TODO(), &post)
 
 	if err != nil {
 		return fmt.Errorf("error processing data")
@@ -174,8 +200,17 @@ func (p PostRepoImpl) Create(post domain.Post, username string) error {
 }
 
 func (p PostRepoImpl) UpdateByTitle(post domain.PostUpdateDto, username string) error {
-	conn := database.MongoConnectionPool.Get().(*database.Connection)
-	defer database.MongoConnectionPool.Put(conn)
+	conn, err := database.ConnectToDB()
+	defer func(conn *database.Connection, ctx context.Context) {
+		err := conn.Disconnect(ctx)
+		if err != nil {
+
+		}
+	}(conn, context.TODO())
+
+	if err != nil {
+		return err
+	}
 
 	var wg sync.WaitGroup
 	wg.Add(3)
@@ -223,7 +258,7 @@ func (p PostRepoImpl) UpdateByTitle(post domain.PostUpdateDto, username string) 
 		return fmt.Errorf(errorMessage)
 	}
 
-	err := conn.PostCollection.FindOneAndUpdate(context.TODO(), bson.D{{"title", post.Title}},
+	err = conn.PostCollection.FindOneAndUpdate(context.TODO(), bson.D{{"title", post.Title}},
 		bson.M{"$set": bson.M{
 			"title":       post.NewTitle,
 			"content":     post.Content,
@@ -259,11 +294,19 @@ func (p PostRepoImpl) UpdateByTitle(post domain.PostUpdateDto, username string) 
 }
 
 func (p PostRepoImpl) UpdateVisibility(post domain.PostUpdateVisibilityDto, username string) error {
-	conn := database.MongoConnectionPool.Get().(*database.Connection)
-	defer database.MongoConnectionPool.Put(conn)
+	conn, err := database.ConnectToDB()
+	defer func(conn *database.Connection, ctx context.Context) {
+		err := conn.Disconnect(ctx)
+		if err != nil {
 
+		}
+	}(conn, context.TODO())
+
+	if err != nil {
+		return err
+	}
 	adminSearch := new(domain.Admin)
-	err := conn.AdminCollection.FindOne(context.TODO(), bson.M{"username": username}).Decode(adminSearch)
+	err = conn.AdminCollection.FindOne(context.TODO(), bson.M{"username": username}).Decode(adminSearch)
 
 	if err != nil {
 		return err

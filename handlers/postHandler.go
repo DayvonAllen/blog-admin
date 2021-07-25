@@ -15,7 +15,7 @@ type PostHandler struct {
 }
 
 func (ph *PostHandler) CreatePost(c *fiber.Ctx) error {
-	token := c.Get("Authorization")
+	token := c.Cookies("Authentication")
 	c.Accepts("application/json")
 
 	var auth domain.Authentication
@@ -48,7 +48,7 @@ func (ph *PostHandler) CreatePost(c *fiber.Ctx) error {
 }
 
 func (ph *PostHandler) UpdatePost(c *fiber.Ctx) error {
-	token := c.Get("Authorization")
+	token := c.Cookies("Authentication")
 	c.Accepts("application/json")
 
 	var auth domain.Authentication
@@ -76,7 +76,7 @@ func (ph *PostHandler) UpdatePost(c *fiber.Ctx) error {
 }
 
 func (ph *PostHandler) UpdateVisibility(c *fiber.Ctx) error {
-	token := c.Get("Authorization")
+	token := c.Cookies("Authentication")
 	c.Accepts("application/json")
 
 	var auth domain.Authentication
