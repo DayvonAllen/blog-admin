@@ -13,7 +13,7 @@ import (
 type AuthRepoImpl struct {
 }
 
-func(a AuthRepoImpl) Login(username string, password string, ip string, ips []string) (*domain.Admin, string, error) {
+func (a AuthRepoImpl) Login(username string, password string, ip string, ips []string) (*domain.Admin, string, error) {
 	var login domain.Authentication
 	var admin domain.Admin
 
@@ -31,7 +31,7 @@ func(a AuthRepoImpl) Login(username string, password string, ip string, ips []st
 
 	opts := options.FindOne()
 	err = conn.AdminCollection.FindOne(context.TODO(), bson.D{{"username",
-		username}},opts).Decode(&admin)
+		username}}, opts).Decode(&admin)
 
 	if err != nil {
 		return nil, "", fmt.Errorf("error finding by username")
@@ -49,18 +49,15 @@ func(a AuthRepoImpl) Login(username string, password string, ip string, ips []st
 		return nil, "", fmt.Errorf("error generating token")
 	}
 
-	go func() {
-		filter := bson.D{{"username", username}}
-		update := bson.D{{"$set", bson.D{{"lastLoginIp", ip}, {"lastLoginIps", ips}}}}
+	filter := bson.D{{"username", username}}
+	update := bson.D{{"$set", bson.D{{"lastLoginIp", ip}, {"lastLoginIps", ips}}}}
 
-		_, err := conn.AdminCollection.UpdateOne(context.TODO(),
-			filter, update)
+	_, err = conn.AdminCollection.UpdateOne(context.TODO(),
+		filter, update)
 
-		if err != nil {
-			panic(err)
-		}
-		return
-	}()
+	if err != nil {
+		return nil, "", err
+	}
 
 	return &admin, token, nil
 }

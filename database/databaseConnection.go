@@ -1,7 +1,6 @@
 package database
 
 import (
-	"com.aharakitchen/app/config"
 	"context"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -18,7 +17,7 @@ type Connection struct {
 }
 
 func ConnectToDB() (*Connection, error) {
-	uri := config.Config("DB_URI")
+	//uri := os.Getenv("DB_URI")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -32,13 +31,13 @@ func ConnectToDB() (*Connection, error) {
 		//MaxConnIdleTime: &idleTime,
 	}
 
-	client, err := mongo.Connect(ctx, dbOptions.ApplyURI(uri))
+	client, err := mongo.Connect(ctx, dbOptions.ApplyURI("mongodb://admin-mongo-srv:27017/blog"))
 	if err != nil {
 		return nil, err
 	}
 
 	// create database
-	db := client.Database("blog-admin-service")
+	db := client.Database("blog")
 
 	// create collection
 	postsCollection := db.Collection("posts")

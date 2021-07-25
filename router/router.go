@@ -6,6 +6,7 @@ import (
 	"com.aharakitchen/app/repo"
 	"com.aharakitchen/app/services"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 )
@@ -31,11 +32,14 @@ func SetupRoutes(app *fiber.App) {
 	posts.Get("/", middleware.IsLoggedIn, ph.GetAllPosts)
 
 	auth := api.Group("/control/checkin")
+	auth.Post("/new", ah.Register)
 	auth.Post("/", ah.Login)
 }
 
 func Setup() *fiber.App {
 	app := fiber.New()
+
+	app.Use(cors.New())
 
 	SetupRoutes(app)
 	return app

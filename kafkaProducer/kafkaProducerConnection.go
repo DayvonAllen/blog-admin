@@ -2,6 +2,8 @@ package kafkaProducer
 
 import (
 	"github.com/Shopify/sarama"
+	"os"
+	"strings"
 	"sync"
 )
 
@@ -25,14 +27,22 @@ func GetInstance() *Connection {
 }
 
 func connectProducer() (sarama.SyncProducer,error) {
-	brokersUrl := []string{"localhost:19092"}
+	names := os.Getenv("KAFKA_SERVICE_NAMES")
 
-	config := sarama.NewConfig()
-	config.Producer.Return.Successes = true
-	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Retry.Max = 7
+	namesArr := make([]string, 0, 10)
+
+	for _, v := range strings.Split(names, ",") {
+		namesArr = append(namesArr, v)
+	}
+
+	brokersUrl := namesArr
+
+	newConfig := sarama.NewConfig()
+	newConfig.Producer.Return.Successes = true
+	newConfig.Producer.RequiredAcks = sarama.WaitForAll
+	newConfig.Producer.Retry.Max = 7
 	// NewSyncProducer creates a new SyncProducer using the given broker addresses and configuration.
-	conn, err := sarama.NewSyncProducer(brokersUrl, config)
+	conn, err := sarama.NewSyncProducer(brokersUrl, newConfig)
 	if err != nil {
 		panic(err)
 	}

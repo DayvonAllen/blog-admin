@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"com.aharakitchen/app/database"
 	"com.aharakitchen/app/domain"
 	"com.aharakitchen/app/services"
+	"context"
 	"fmt"
 	"github.com/gofiber/fiber/v2"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"
 	"strings"
 	"time"
@@ -25,7 +28,7 @@ func (ah *AuthHandler) Login(c *fiber.Ctx) error {
 
 	var auth domain.Authentication
 
-	_, token, err := ah.AuthService.Login(strings.ToLower(details.Email), details.Password, c.IP(), c.IPs())
+	_, token, err := ah.AuthService.Login(strings.ToLower(details.Username), details.Password, c.IP(), c.IPs())
 
 	if err != nil {
 		if err == bcrypt.ErrMismatchedHashAndPassword {
@@ -51,6 +54,43 @@ func (ah *AuthHandler) Login(c *fiber.Ctx) error {
 		Expires: time.Now().Add(1 * time.Hour),
 		HTTPOnly: true,
 	})
+
+	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "success", "data": "success"})
+}
+
+func (ah *AuthHandler) Register(c *fiber.Ctx) error {
+	c.Accepts("application/json")
+
+	adminDetails := new(domain.Admin)
+
+	err := c.BodyParser(adminDetails)
+
+	if err != nil {
+		return c.Status(500).JSON(fiber.Map{"status": "error", "message": "error...", "data": fmt.Sprintf("%v", err)})
+	}
+
+	conn, err := database.ConnectToDB()
+	defer func(conn *database.Connection, ctx context.Context) {
+		err := conn.Disconnect(ctx)
+		if err != nil {
+
+		}
+	}(conn, context.TODO())
+
+	if err != nil {
+		panic(err)
+	}
+
+	admin := domain.Admin{Username: adminDetails.Username, Password: adminDetails.Password}
+	admin.Id = primitive.NewObjectID()
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(admin.Password), bcrypt.DefaultCost)
+	admin.Password = string(hashedPassword)
+
+	_, err = conn.AdminCollection.InsertOne(context.TODO(), &admin)
+
+	if err != nil {
+		panic("error processing data")
+	}
 
 	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "success", "data": "success"})
 }

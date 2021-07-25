@@ -1,12 +1,12 @@
 package repo
 
 import (
-	"com.aharakitchen/app/config"
 	"com.aharakitchen/app/domain"
 	"com.aharakitchen/app/kafkaProducer"
 	"fmt"
 	"github.com/Shopify/sarama"
 	"github.com/vmihailenco/msgpack/v5"
+	"os"
 )
 
 func ProcessMessage(message domain.Message) error {
@@ -87,7 +87,7 @@ func SendKafkaMessage(post *domain.Post, eventType int) error {
 		return err
 	}
 
-	err = PushUserToQueue(b, config.Config("TOPIC"))
+	err = PushUserToQueue(b, os.Getenv("TOPIC"))
 
 	if err != nil {
 		return err
@@ -111,7 +111,7 @@ func SendAltKafkaMessage(tag *domain.Tag, eventType int) error {
 		return err
 	}
 
-	err = PushUserToQueue(b, config.Config("SECONDARY_TOPIC"))
+	err = PushUserToQueue(b, os.Getenv("SECONDARY_TOPIC"))
 
 	if err != nil {
 		return err

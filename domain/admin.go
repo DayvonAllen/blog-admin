@@ -7,9 +7,9 @@ import (
 
 type Admin struct {
 	Id                          primitive.ObjectID   `bson:"_id" json:"-"`
-	Username                    string               `bson:"username" json:"-"`
+	Username                    string               `bson:"username" json:"username"`
 	Email                       string               `bson:"email" json:"-"`
-	Password                    string               `bson:"password" json:"-"`
+	Password                    string               `bson:"password" json:"password"`
 	LastLoginIp					string				 `bson:"lastLoginIp" json:"-"`
 	LastLoginIps				[]string			 `bson:"lastLoginIps" json:"-"`
 	CreatedAt                   time.Time            `bson:"createdAt" json:"-"`

@@ -1,16 +1,8 @@
 package main
 
 import (
-	"com.aharakitchen/app/config"
-	"com.aharakitchen/app/database"
-	"com.aharakitchen/app/domain"
 	"com.aharakitchen/app/router"
-	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
-	"golang.org/x/crypto/bcrypt"
 	"log"
 	"os"
 	"os/signal"
@@ -18,41 +10,6 @@ import (
 
 func init() {
 	// create database connection instance for first time
-	u := config.Config("ADMIN_USERNAME")
-	p := config.Config("PASSWORD")
-
-	conn, err := database.ConnectToDB()
-	defer func(conn *database.Connection, ctx context.Context) {
-		err := conn.Disconnect(ctx)
-		if err != nil {
-
-		}
-	}(conn, context.TODO())
-
-	if err != nil {
-		panic(err)
-	}
-
-	adminSearch := new(domain.Admin)
-	err = conn.AdminCollection.FindOne(context.TODO(), bson.M{"username": u}).Decode(adminSearch)
-
-	if err != nil  {
-		if err == mongo.ErrNoDocuments {
-			admin := domain.Admin{Username: u, Password: p}
-			admin.Id = primitive.NewObjectID()
-			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(admin.Password), bcrypt.DefaultCost)
-			admin.Password = string(hashedPassword)
-
-			_, err := conn.AdminCollection.InsertOne(context.TODO(), &admin)
-
-			if err != nil {
-				panic("error processing data")
-			}
-			return
-		}
-		panic(err)
-	}
-
 	//go events.KafkaConsumerGroup()
 }
 

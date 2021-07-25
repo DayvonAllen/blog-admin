@@ -1,7 +1,6 @@
 package domain
 
 import (
-	"com.aharakitchen/app/config"
 	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
@@ -19,7 +18,7 @@ type Authentication struct {
 
 // LoginDetails todo validate struct
 type LoginDetails struct {
-	Email    string `bson:"email" json:"email"`
+	Username    string `bson:"username" json:"username"`
 	Password string `bson:"password" json:"password"`
 }
 
@@ -29,11 +28,12 @@ type Claims struct {
 	Username string
 }
 
-var k = config.Config("SECRET")
+//var k = os.Getenv("SECRET")
+var k = "test"
 
 func (l Authentication) GenerateJWT(msg Admin) (string, error) {
-	e, err := strconv.Atoi(config.Config("EXPIRATION"))
-
+	e, err := strconv.Atoi("30")
+	// os.Getenv("EXPIRATION")
 	if err != nil {
 		return "", err
 	}
