@@ -65,7 +65,7 @@ func main() {
 		_ = app.Shutdown()
 	}()
 
-	if err := app.Listen(":8082"); err != nil {
+	if err := app.Listen(":8080"); err != nil {
 		log.Panic(err)
 	}
 }

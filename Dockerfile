@@ -17,7 +17,7 @@ COPY . .
 RUN go build -o ./out/blog-admin-server .
 
 # This container exposes port 8082 to the outside world
-EXPOSE 8082
+EXPOSE 8080
 
 # Run the binary program produced by `go install`
 CMD ["./out/blog-admin-server"]
