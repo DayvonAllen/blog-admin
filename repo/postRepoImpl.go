@@ -174,6 +174,8 @@ func (p PostRepoImpl) Create(post domain.Post, username string) error {
 		return fmt.Errorf(errorMessage)
 	}
 
+	post.Preview = post.Content
+
 	_, err = conn.PostCollection.InsertOne(context.TODO(), &post)
 
 	if err != nil {
