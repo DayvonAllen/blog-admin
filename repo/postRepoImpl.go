@@ -23,12 +23,6 @@ type PostRepoImpl struct {
 
 func (p PostRepoImpl) FindAllPosts(page string, newPosts bool) (*domain.PostList, error) {
 	conn := database.MongoConn
-	defer func(conn *database.Connection, ctx context.Context) {
-		err := conn.Disconnect(ctx)
-		if err != nil {
-
-		}
-	}(conn, context.TODO())
 
 	findOptions := options.FindOptions{}
 	perPage := 10
@@ -110,12 +104,6 @@ func (p PostRepoImpl) FindPostById(id primitive.ObjectID) (*domain.PostDto, erro
 
 func (p PostRepoImpl) Create(post domain.Post, username string) error {
 	conn := database.MongoConn
-	defer func(conn *database.Connection, ctx context.Context) {
-		err := conn.Disconnect(ctx)
-		if err != nil {
-
-		}
-	}(conn, context.TODO())
 
 	var wg sync.WaitGroup
 	wg.Add(3)
@@ -196,12 +184,6 @@ func (p PostRepoImpl) Create(post domain.Post, username string) error {
 
 func (p PostRepoImpl) UpdateByTitle(post domain.PostUpdateDto, username string) error {
 	conn := database.MongoConn
-	defer func(conn *database.Connection, ctx context.Context) {
-		err := conn.Disconnect(ctx)
-		if err != nil {
-
-		}
-	}(conn, context.TODO())
 
 	var wg sync.WaitGroup
 	wg.Add(3)
