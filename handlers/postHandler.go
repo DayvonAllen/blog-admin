@@ -15,21 +15,15 @@ type PostHandler struct {
 }
 
 func (ph *PostHandler) CreatePost(c *fiber.Ctx) error {
-	token := c.Cookies("Authentication")
 	c.Accepts("application/json")
 
-	var auth domain.Authentication
-	u, loggedIn, err := auth.IsLoggedIn(token)
-
-	if err != nil || loggedIn == false {
-		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "error...", "data": "Unauthorized user"})
-	}
+	username := c.Locals("username").(string)
 
 	post := new(domain.Post)
 
-	err = c.BodyParser(post)
+	err := c.BodyParser(post)
 
-	post.Author = u.Username
+	post.Author = username
 	post.Id = primitive.NewObjectID()
 	post.CreatedAt = time.Now()
 	post.UpdatedAt = time.Now()
@@ -38,7 +32,7 @@ func (ph *PostHandler) CreatePost(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "error...", "data": fmt.Sprintf("%v", err)})
 	}
 
-	err = ph.PostService.Create(*post, u.Username)
+	err = ph.PostService.Create(*post, username)
 
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "error...", "data": fmt.Sprintf("%v", err)})
@@ -48,25 +42,19 @@ func (ph *PostHandler) CreatePost(c *fiber.Ctx) error {
 }
 
 func (ph *PostHandler) UpdatePost(c *fiber.Ctx) error {
-	token := c.Cookies("Authentication")
 	c.Accepts("application/json")
 
-	var auth domain.Authentication
-	u, loggedIn, err := auth.IsLoggedIn(token)
-
-	if err != nil || loggedIn == false {
-		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "error...", "data": "Unauthorized user"})
-	}
+	username := c.Locals("username").(string)
 
 	post := new(domain.PostUpdateDto)
 
-	err = c.BodyParser(post)
+	err := c.BodyParser(post)
 
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "error...", "data": fmt.Sprintf("%v", err)})
 	}
 
-	err = ph.PostService.UpdateByTitle(*post, u.Username)
+	err = ph.PostService.UpdateByTitle(*post, username)
 
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "error...", "data": fmt.Sprintf("%v", err)})
@@ -76,25 +64,19 @@ func (ph *PostHandler) UpdatePost(c *fiber.Ctx) error {
 }
 
 func (ph *PostHandler) UpdateVisibility(c *fiber.Ctx) error {
-	token := c.Cookies("Authentication")
 	c.Accepts("application/json")
 
-	var auth domain.Authentication
-	u, loggedIn, err := auth.IsLoggedIn(token)
-
-	if err != nil || loggedIn == false {
-		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "error...", "data": "Unauthorized user"})
-	}
+	username := c.Locals("username").(string)
 
 	post := new(domain.PostUpdateVisibilityDto)
 
-	err = c.BodyParser(post)
+	err := c.BodyParser(post)
 
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "error...", "data": fmt.Sprintf("%v", err)})
 	}
 
-	err = ph.PostService.UpdateVisibility(*post, u.Username)
+	err = ph.PostService.UpdateVisibility(*post, username)
 
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "error...", "data": fmt.Sprintf("%v", err)})

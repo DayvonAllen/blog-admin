@@ -14,19 +14,13 @@ type TagHandler struct {
 }
 
 func (th *TagHandler) CreateTag(c *fiber.Ctx) error {
-	token := c.Cookies("Authentication")
 	c.Accepts("application/json")
 
-	var auth domain.Authentication
-	u, loggedIn, err := auth.IsLoggedIn(token)
-
-	if err != nil || loggedIn == false {
-		return c.Status(401).JSON(fiber.Map{"status": "error", "message": "error...", "data": "Unauthorized user"})
-	}
+	username := c.Locals("username").(string)
 
 	tag := new(domain.Tag)
 
-	err = c.BodyParser(tag)
+	err := c.BodyParser(tag)
 
 	tag.Id = primitive.NewObjectID()
 	tag.CreatedAt = time.Now()
@@ -36,7 +30,7 @@ func (th *TagHandler) CreateTag(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "error...", "data": fmt.Sprintf("%v", err)})
 	}
 
-	err = th.TagService.Create(*tag, u.Username)
+	err = th.TagService.Create(*tag, username)
 
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"status": "error", "message": "error...", "data": fmt.Sprintf("%v", err)})

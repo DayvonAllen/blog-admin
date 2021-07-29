@@ -59,9 +59,9 @@ func (ah *AuthHandler) Logout(c *fiber.Ctx) error {
 	c.Cookie(&fiber.Cookie{
 		Name: "Authentication",
 		Value: "",
-		Expires: time.Now(),
+		Expires: time.Now().Add(-time.Hour),
 		HTTPOnly: true,
 	})
 
-	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "success", "data": c.IPs()})
+	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "success", "data": "success"})
 }

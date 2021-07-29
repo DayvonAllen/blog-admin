@@ -175,7 +175,7 @@ func (p PostRepoImpl) Create(post domain.Post, username string) error {
 	}
 
 	if len(post.Content) > 160 {
-		post.Preview = string([]rune(post.Content)[:161]) + "。。。"
+		post.Preview = string([]rune(post.Content)[:161]) + "..."
 	} else {
 		post.Preview = post.Content
 	}

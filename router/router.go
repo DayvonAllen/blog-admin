@@ -20,14 +20,14 @@ func SetupRoutes(app *fiber.App) {
 	api := app.Group("", logger.New())
 
 	tags := api.Group("/control/tags")
-	tags.Post("/", th.CreateTag)
+	tags.Post("/", middleware.IsLoggedIn, th.CreateTag)
 	tags.Get("/:category", middleware.IsLoggedIn, th.GetAllPostsByTags)
 	tags.Get("/", middleware.IsLoggedIn, th.GetAllTags)
 
 	posts := api.Group("/control/posts")
-	posts.Post("/", ph.CreatePost)
-	posts.Put("/visibility", ph.UpdateVisibility)
-	posts.Put("/", ph.UpdatePost)
+	posts.Post("/", middleware.IsLoggedIn, ph.CreatePost)
+	posts.Put("/visibility", middleware.IsLoggedIn, ph.UpdateVisibility)
+	posts.Put("/", middleware.IsLoggedIn, ph.UpdatePost)
 	posts.Get("/:id", middleware.IsLoggedIn, ph.GetPostById)
 	posts.Get("/", middleware.IsLoggedIn, ph.GetAllPosts)
 
