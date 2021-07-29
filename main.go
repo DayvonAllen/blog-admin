@@ -18,8 +18,15 @@ import (
 func init() {
 	// create database connection instance for first time
 	//go events.KafkaConsumerGroup()
-
 	database.ConnectToDB()
+}
+
+func main() {
+	app := router.Setup()
+
+	// graceful shutdown on signal interrupts
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
 
 	adminSearch := new(domain.Admin)
 	err := database.MongoConn.AdminCollection.FindOne(context.TODO(), bson.M{"username": "admin"}).Decode(adminSearch)
@@ -40,14 +47,6 @@ func init() {
 		}
 		panic(err)
 	}
-}
-
-func main() {
-	app := router.Setup()
-
-	// graceful shutdown on signal interrupts
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
 
 	go func() {
 		_ = <-c

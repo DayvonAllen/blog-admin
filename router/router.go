@@ -32,6 +32,7 @@ func SetupRoutes(app *fiber.App) {
 	posts.Get("/", middleware.IsLoggedIn, ph.GetAllPosts)
 
 	auth := api.Group("/control/checkin")
+	auth.Get("/status", middleware.IsLoggedIn, ah.IsLoggedIn)
 	auth.Post("/", ah.Login)
 	auth.Get("/", ah.Logout)
 }

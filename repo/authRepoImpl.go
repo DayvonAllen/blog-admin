@@ -18,13 +18,6 @@ func (a AuthRepoImpl) Login(username string, password string, ip string, ips []s
 	var admin domain.Admin
 
 	conn := database.MongoConn
-	defer func(conn *database.Connection, ctx context.Context) {
-		err := conn.Disconnect(ctx)
-		if err != nil {
-
-		}
-	}(conn, context.TODO())
-
 
 	opts := options.FindOne()
 	err := conn.AdminCollection.FindOne(context.TODO(), bson.D{{"username",
