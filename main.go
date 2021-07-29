@@ -19,20 +19,10 @@ func init() {
 	// create database connection instance for first time
 	//go events.KafkaConsumerGroup()
 
-	conn, err := database.ConnectToDB()
-	defer func(conn *database.Connection, ctx context.Context) {
-		err := conn.Disconnect(ctx)
-		if err != nil {
-
-		}
-	}(conn, context.TODO())
-
-	if err != nil {
-		panic(err)
-	}
+	database.ConnectToDB()
 
 	adminSearch := new(domain.Admin)
-	err = conn.AdminCollection.FindOne(context.TODO(), bson.M{"username": "admin"}).Decode(adminSearch)
+	err := database.MongoConn.AdminCollection.FindOne(context.TODO(), bson.M{"username": "admin"}).Decode(adminSearch)
 
 	if err != nil  {
 		if err == mongo.ErrNoDocuments {
@@ -41,7 +31,7 @@ func init() {
 			hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(admin.Password), bcrypt.DefaultCost)
 			admin.Password = string(hashedPassword)
 
-			_, err := conn.AdminCollection.InsertOne(context.TODO(), &admin)
+			_, err := database.MongoConn.AdminCollection.InsertOne(context.TODO(), &admin)
 
 			if err != nil {
 				panic("error processing data")

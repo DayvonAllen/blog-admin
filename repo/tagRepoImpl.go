@@ -23,17 +23,7 @@ type TagRepoImpl struct {
 }
 
 func (t TagRepoImpl) FindAllTags() (*domain.TagList, error) {
-	conn, err := database.ConnectToDB()
-	defer func(conn *database.Connection, ctx context.Context) {
-		err := conn.Disconnect(ctx)
-		if err != nil {
-
-		}
-	}(conn, context.TODO())
-
-	if err != nil {
-		return nil, err
-	}
+	conn := database.MongoConn
 
 	cur, err := conn.TagCollection.Find(context.TODO(), bson.M{})
 
@@ -55,19 +45,9 @@ func (t TagRepoImpl) FindAllTags() (*domain.TagList, error) {
 }
 
 func (t TagRepoImpl) FindAllPostsByCategory(category, page string) (*domain.PostList, error) {
-	conn, err := database.ConnectToDB()
-	defer func(conn *database.Connection, ctx context.Context) {
-		err := conn.Disconnect(ctx)
-		if err != nil {
+	conn := database.MongoConn
 
-		}
-	}(conn, context.TODO())
-
-	if err != nil {
-		return nil, err
-	}
-
-	err = conn.TagCollection.FindOne(context.TODO(), bson.D{{"value", category}}).Decode(&t.tag)
+	err := conn.TagCollection.FindOne(context.TODO(), bson.D{{"value", category}}).Decode(&t.tag)
 
 	if err != nil {
 		return nil, err
@@ -128,19 +108,9 @@ func (t TagRepoImpl) FindAllPostsByCategory(category, page string) (*domain.Post
 }
 
 func (t TagRepoImpl) Create(tag domain.Tag, username string) error {
-	conn, err := database.ConnectToDB()
-	defer func(conn *database.Connection, ctx context.Context) {
-		err := conn.Disconnect(ctx)
-		if err != nil {
+	conn := database.MongoConn
 
-		}
-	}(conn, context.TODO())
-
-	if err != nil {
-		return err
-	}
-
-	err = conn.TagCollection.FindOne(context.TODO(), bson.M{"value": tag.Value}).Decode(&t.tag)
+	err := conn.TagCollection.FindOne(context.TODO(), bson.M{"value": tag.Value}).Decode(&t.tag)
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -201,19 +171,9 @@ func (t TagRepoImpl) Create(tag domain.Tag, username string) error {
 }
 
 func (t TagRepoImpl) UpdateTag(tagValue string, postId primitive.ObjectID) error {
-	conn, err := database.ConnectToDB()
-	defer func(conn *database.Connection, ctx context.Context) {
-		err := conn.Disconnect(ctx)
-		if err != nil {
+	conn:= database.MongoConn
 
-		}
-	}(conn, context.TODO())
-
-	if err != nil {
-		return err
-	}
-
-	err = conn.TagCollection.FindOne(context.TODO(), bson.M{"value": tagValue}).Decode(&t.tag)
+	err := conn.TagCollection.FindOne(context.TODO(), bson.M{"value": tagValue}).Decode(&t.tag)
 
 	if err != nil {
 		return err

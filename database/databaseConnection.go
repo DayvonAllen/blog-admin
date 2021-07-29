@@ -16,7 +16,9 @@ type Connection struct {
 	*mongo.Database
 }
 
-func ConnectToDB() (*Connection, error) {
+var MongoConn *Connection
+
+func ConnectToDB() {
 	//uri := os.Getenv("DB_URI")
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -33,7 +35,7 @@ func ConnectToDB() (*Connection, error) {
 
 	client, err := mongo.Connect(ctx, dbOptions.ApplyURI("mongodb://admin-mongo-srv:27017/blog"))
 	if err != nil {
-		return nil, err
+		panic(err)
 	}
 
 	// create database
@@ -45,6 +47,5 @@ func ConnectToDB() (*Connection, error) {
 	blackListCollection := db.Collection("blacklist")
 	adminCollection := db.Collection("admin")
 
-	dbConnection := &Connection{client, postsCollection, tagsCollection,blackListCollection, adminCollection,db}
-	return dbConnection, nil
+	MongoConn = &Connection{client, postsCollection, tagsCollection,blackListCollection, adminCollection,db}
 }
