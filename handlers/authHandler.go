@@ -44,15 +44,7 @@ func (ah *AuthHandler) Login(c *fiber.Ctx) error {
 
 	signedToken = append(signedToken, t...)
 
-	// Set cookie
-	c.Cookie(&fiber.Cookie{
-		Name: "Authentication",
-		Value: string(signedToken),
-		Expires: time.Now().Add(1 * time.Hour),
-		HTTPOnly: true,
-	})
-
-	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "success", "data": c.IPs()})
+	return c.Status(200).JSON(fiber.Map{"status": "success", "message": "success", "data": string(signedToken)})
 }
 
 func (ah *AuthHandler) Logout(c *fiber.Ctx) error {
